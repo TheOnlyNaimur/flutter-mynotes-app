@@ -17,7 +17,5 @@ samples, guidance on mobile development, and a full API reference.
 
 # flutter-mynotes-app
 
-Download the App from this Link: sha256:ba30d254e436dfa3e370bb73fd24c71d3209c105cd90aa49da04d1fe2256737b 
-
-
+Download the App from this Link: https://github.com/TheOnlyNaimur/flutter-mynotes-app/releases/download/v1.0.0/app-release.apk
 
