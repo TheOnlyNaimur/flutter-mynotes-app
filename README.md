@@ -17,5 +17,5 @@ samples, guidance on mobile development, and a full API reference.
 
 # flutter-mynotes-app
 
-
+Download the App from this Link: https://github.com/TheOnlyNaimur/flutter-mynotes-app/releases/download/v1.0.0/app-release.apk
 
