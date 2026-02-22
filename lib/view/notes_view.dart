@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mynotes/constants/routes.dart';
 import 'package:mynotes/models/cloud_note.dart'; // Add this import!
 import 'package:mynotes/services/cloud_storage_service.dart';
+import 'package:share_plus/share_plus.dart';
 
 enum MenuAction { logout }
 
@@ -19,7 +20,8 @@ class _NotesViewState extends State<NotesView> {
 
   // Helper to get the current user's UID safely
   String get userId => FirebaseAuth.instance.currentUser!.uid;
-
+  // This will store the latest notes from the stream
+  Iterable<CloudNote> _allNotes = [];
   @override
   // 2. Initialize the service in initState
   void initState() {
@@ -31,9 +33,30 @@ class _NotesViewState extends State<NotesView> {
   @override // Added missing override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor:Theme.of(context).brightness == Brightness.light 
+    ? const Color(0xFFF5F7FA) 
+    : Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('My Notes'),
+        title: const Text(
+          'My Notes',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: false, // Professional left-aligned title
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         actions: [
+          IconButton(
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: NoteSearchDelegate(
+                  allNotes: _allNotes,
+                ), // Pass your list here
+              );
+            },
+            icon: const Icon(Icons.search),
+          ),
           // 1. The Add Note Button
           IconButton(
             onPressed: () async {
@@ -80,39 +103,90 @@ class _NotesViewState extends State<NotesView> {
             case ConnectionState.active:
               if (snapshot.hasData) {
                 final allNotes = snapshot.data as Iterable<CloudNote>;
-
+                _allNotes = allNotes;
                 // 3. If we have notes, show them in a list
+                // Inside your StreamBuilder's snapshot.hasData check:
                 return ListView.builder(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   itemCount: allNotes.length,
                   itemBuilder: (context, index) {
                     final note = allNotes.elementAt(index);
-                    return ListTile(
-                      onTap: () {
-                        Navigator.of(context).pushNamed(
-                          createOrUpdateNoteRoute,
-                          arguments:
-                              note, // This "hands over" the note data to the editor
-                        );
-                      },
-                      title: Text(
-                        note.title.isEmpty ? 'Untitled Note' : note.title,
-                        maxLines: 1,
-                        softWrap: true,
-                        overflow: TextOverflow.ellipsis,
+                    return Card(
+                      color: Theme.of(context).colorScheme.surface,
+                      elevation: 2, // Gives it a slight shadow
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        // side: BorderSide(color: Colors.grey.shade200),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      subtitle: Text(
-                        note.text,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      // OPTIONAL: Add a trailing delete icon to make it look even more professional
-                      trailing: IconButton(
-                        onPressed: () async {
-                          await _notesService.deleteNote(
-                            documentId: note.documentId,
-                          );
+                      child: ListTile(
+                        onTap: () {
+                          Navigator.of(
+                            context,
+                          ).pushNamed(createOrUpdateNoteRoute, arguments: note);
                         },
-                        icon: const Icon(Icons.delete),
+                        contentPadding: const EdgeInsets.all(16),
+                        title: Text(
+                          note.title.isEmpty ? 'Untitled Note' : note.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Theme.of(context).colorScheme.onSurface,
+                            // color: Colors.black87,
+                          ),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            note.text,
+                            maxLines:
+                                3, // Shows more of the content for a better preview
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              height: 1.3, // Improves readability
+                            ),
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize
+                              .min, // Keeps the buttons close together
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                // We combine the title and text into one message
+                                final textToShare =
+                                    '${note.title}\n\n${note.text}';
+
+                                // This triggers the native Android share sheet on your Realme 7i
+                                Share.share(textToShare);
+                              },
+                              icon: const Icon(
+                                Icons.share,
+                                color: Color.fromARGB(255, 90, 255, 68),
+                              ),
+                            ),
+
+                            // Share Button
+                            IconButton(
+                              onPressed: () async {
+                                // We'll add a confirm dialog here later!
+                                await _notesService.deleteNote(
+                                  documentId: note.documentId,
+                                );
+                              },
+                              icon: Icon(
+                                Icons.delete_outline,
+                                color: Colors.red[300],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -125,6 +199,24 @@ class _NotesViewState extends State<NotesView> {
               return const Center(child: CircularProgressIndicator());
           }
         },
+      ),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(
+          bottom: 50.0,
+          right: 10.0,
+        ), // Moves it up and left
+        child: FloatingActionButton.extended(
+          onPressed: () =>
+              Navigator.of(context).pushNamed(createOrUpdateNoteRoute),
+          label: const Text(
+            'New Note',
+            style: TextStyle(color: Colors.black87),
+          ),
+          icon: const Icon(Icons.add, color: Colors.black87),
+          backgroundColor: Colors.limeAccent[400],
+        ),
       ),
     );
   }
@@ -151,4 +243,49 @@ Future<bool> showLogOutDialog(BuildContext context) {
       );
     },
   ).then((value) => value ?? false);
+}
+
+class NoteSearchDelegate extends SearchDelegate {
+  final Iterable<CloudNote> allNotes;
+  NoteSearchDelegate({required this.allNotes});
+
+  @override
+  List<Widget>? buildActions(BuildContext context) => [
+    IconButton(onPressed: () => query = '', icon: const Icon(Icons.clear)),
+  ];
+
+  @override
+  Widget? buildLeading(BuildContext context) => IconButton(
+    onPressed: () => close(context, null),
+    icon: const Icon(Icons.arrow_back),
+  );
+
+  @override
+  Widget buildResults(BuildContext context) => buildSuggestions(context);
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final suggestions = allNotes.where((note) {
+      return note.title.toLowerCase().contains(query.toLowerCase()) ||
+          note.text.toLowerCase().contains(query.toLowerCase());
+    });
+
+    return ListView.builder(
+      itemCount: suggestions.length,
+      itemBuilder: (context, index) {
+        final note = suggestions.elementAt(index);
+        return ListTile(
+          title: Text(note.title),
+          subtitle: Text(note.text, maxLines: 1),
+          onTap: () {
+            query = note.title;
+            close(context, null);
+            Navigator.of(
+              context,
+            ).pushNamed(createOrUpdateNoteRoute, arguments: note);
+          },
+        );
+      },
+    );
+  }
 }

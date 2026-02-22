@@ -15,12 +15,29 @@ void main() {
     MaterialApp(
       title: 'MyNotes',
       debugShowCheckedModeBanner: false, // Cleaner UI
+      // 1. LIGHT THEME (Your current look)
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+        brightness: Brightness.light,
+        colorSchemeSeed: Colors.blue, // Primary brand color
+        scaffoldBackgroundColor: const Color(0xFFF5F7FA),
       ),
+
+      // 2. DARK THEME (The new look!)
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorSchemeSeed: Colors.blue,
+        // Darker background for OLED screens like the Realme 7i
+        scaffoldBackgroundColor: const Color(0xFF121212),
+      ),
+
+      // 3. SYSTEM SETTING
+      // This makes the app follow your phone's dark/light mode setting
+      themeMode: ThemeMode.system,
+
       home: const HomePage(),
-      // Use the constants here so they match everywhere 
+      // Use the constants here so they match everywhere
       routes: {
         loginRoute: (context) => const LoginPage(),
         registerRoute: (context) => const RegistrationPage(),
@@ -64,4 +81,4 @@ class HomePage extends StatelessWidget {
   }
 }
 
-// NOTE: Move this class to lib/view/notes_view.dart in the next step! 
+// NOTE: Move this class to lib/view/notes_view.dart in the next step!
