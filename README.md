@@ -6,7 +6,7 @@ A beautifully designed, cross-platform notes app built with **Flutter** and powe
 
 ## 📥 Download
 
-**[⬇️ Download MyNotes v1.0.1 (Android APK)](https://github.com/TheOnlyNaimur/flutter-mynotes-app/releases/download/v1.0.1/MyNotes.apk)**
+**[⬇️ Download MyNotes v1.0.1 (Android APK)](https://github.com/TheOnlyNaimur/flutter-mynotes-app/releases/download/v1.0.0/MyNotes.apk)**
 
 > Requires Android 5.0 (Lollipop) or higher. Enable "Install from unknown sources" in your device settings before installing.
 
